@@ -1,14 +1,14 @@
 package com.udemy.roommodeldemo
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.udemy.roommodeldemo.databinding.ActivityMainBinding
+import com.udemy.roommodeldemo.db.Subscriber
 import com.udemy.roommodeldemo.db.SubscriberDatabase
 import com.udemy.roommodeldemo.db.SubscriberRepository
 
@@ -16,6 +16,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var subscriberViewModel: SubscriberViewModel
+    private lateinit var subscriberAdapter: SubscriberAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,18 +30,32 @@ class MainActivity : AppCompatActivity() {
         binding.subscriberViewModel = subscriberViewModel
         binding.lifecycleOwner = this
         initRecyclerView()
+        subscriberViewModel.message.observe(this, {
+            it.getContentIfNotHandled().let { msg ->
+                Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
+            }
+        })
     }
 
     private fun initRecyclerView() {
+        subscriberAdapter = SubscriberAdapter {
+                selectedItem: Subscriber -> itemClicked(selectedItem)
+        }
         binding.apply {
             rvSubscriber.layoutManager = LinearLayoutManager(this@MainActivity, RecyclerView.VERTICAL, false)
+            binding.rvSubscriber.adapter = subscriberAdapter
             displaySubscribersList()
         }
     }
 
     private fun displaySubscribersList() {
         subscriberViewModel.subscribers.observe(this, {
-            binding.rvSubscriber.adapter = SubscriberAdapter(it)
+            subscriberAdapter.setList(it)
+            subscriberAdapter.notifyDataSetChanged()
         })
+    }
+
+    private fun itemClicked(subscriber: Subscriber) {
+        subscriberViewModel.initUpdateAndDelete(subscriber)
     }
 }

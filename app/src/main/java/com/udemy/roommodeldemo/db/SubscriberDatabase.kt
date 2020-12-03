@@ -12,7 +12,8 @@ abstract class SubscriberDatabase: RoomDatabase() {
 
     companion object {
 
-        val INSTANCE : SubscriberDatabase? = null
+        @Volatile
+        private var INSTANCE : SubscriberDatabase? = null
 
         fun getInstance(context: Context): SubscriberDatabase {
             synchronized(this) {
